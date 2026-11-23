@@ -3,7 +3,7 @@
 
 ## Gruppemedlemmer
 
-- Sofie – GitHub: [Sofie12389]
+- Sofie – GitHub: [ssxxzcx]
 - Selma – GitHub: [sjab12]
 - Omar – GitHub: [omar311004]
 
