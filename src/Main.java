@@ -1,7 +1,9 @@
+import controller.Controller;
+import ui.UserInterface;
+
 public class Main {
     public static void main(String[] args) {
-
-        System.out.println("Velkommen til Svømmeklubben Delfinen!");
-
+        UserInterface ui = new UserInterface(new Controller());
+        ui.start();
     }
 }
