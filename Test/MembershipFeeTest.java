@@ -1,6 +1,6 @@
-
-package model;
-
+import model.Member;
+import model.MembershipFee;
+import model.MembershipType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -11,6 +11,7 @@ class MembershipFeeTest {
 
     private final LocalDate calculationDate =
             LocalDate.of(2026, 11, 23);
+
 
     @Test
     void juniorUnder18Pays1000() {
