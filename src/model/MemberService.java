@@ -26,7 +26,8 @@ public class MemberService {
         }
 
         if (membershipType == MembershipType.PASSIVE && competitive) {
-            throw new IllegalArgumentException("Passive medlemmer kan ikke være konkurrencesvømmere");
+            throw new IllegalArgumentException(
+                    "Passive medlemmer kan ikke være konkurrencesvømmere");
         }
 
         Member member = new Member(nextMemberId, name, birthDate,
@@ -41,4 +42,22 @@ public class MemberService {
     public List<Member> getMembers() {
         return new ArrayList<>(members);
     }
+
+    public void loadMembers(List<Member> loadedMembers) {
+        if (loadedMembers == null) {
+            throw new IllegalArgumentException("Medlemslisten må ikke være null");
+        }
+
+        members.clear();
+        members.addAll(loadedMembers);
+
+        nextMemberId = 1;
+
+        for (Member member : members) {
+            if (member.getMemberId() >= nextMemberId) {
+                nextMemberId = member.getMemberId() + 1;
+            }
+        }
+    }
 }
+
