@@ -18,9 +18,20 @@ public class Controller {
     public Controller() {
         try {
             memberService.loadMembers(fileHandler.loadData());
+
+            for (Payment payment : fileHandler.loadPayments()) {
+                if (findMember(payment.getMemberId()) != null) {
+                    paymentService.registerPayment(
+                            payment.getMemberId(),
+                            payment.getAmount(),
+                            payment.getPaymentDate()
+                    );
+                }
+            }
+
         } catch (IOException e) {
             throw new IllegalStateException(
-                    "Kunne ikke indlæse medlemmer", e);
+                    "Kunne ikke indlæse data", e);
         }
     }
 
@@ -28,9 +39,9 @@ public class Controller {
                                MembershipType membershipType,
                                boolean competitive) {
 
-        if (name.contains(";")) {
-            throw new IllegalArgumentException(
-                    "Navnet må ikke indeholde semikolon");
+        if (name == null || name.contains(";") ||
+                name.contains("\n") || name.contains("\r")) {
+            throw new IllegalArgumentException("Ugyldigt navn");
         }
 
         Member member = memberService.createMember(
@@ -52,21 +63,15 @@ public class Controller {
     public void registerPayment(int memberId, double amount,
                                 LocalDate paymentDate) {
 
-        boolean memberExists = false;
-
-        for (Member member : memberService.getMembers()) {
-            if (member.getMemberId() == memberId) {
-                memberExists = true;
-                break;
-            }
-        }
-
-        if (!memberExists) {
+        if (findMember(memberId) == null) {
             throw new IllegalArgumentException(
                     "Medlemsnummeret findes ikke");
         }
 
-        paymentService.registerPayment(memberId, amount, paymentDate);
+        paymentService.registerPayment(
+                memberId, amount, paymentDate);
+
+        savePayments();
     }
 
     public List<Member> getMembersInArrears() {
@@ -82,12 +87,30 @@ public class Controller {
         return teamService.getSeniorMembers(memberService.getMembers());
     }
 
+    private Member findMember(int memberId) {
+        for (Member member : memberService.getMembers()) {
+            if (member.getMemberId() == memberId) {
+                return member;
+            }
+        }
+        return null;
+    }
+
     private void saveMembers() {
         try {
             fileHandler.saveData(memberService.getMembers());
         } catch (IOException e) {
             throw new IllegalStateException(
                     "Kunne ikke gemme medlemmer", e);
+        }
+    }
+
+    private void savePayments() {
+        try {
+            fileHandler.savePayments(paymentService.getPayments());
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Kunne ikke gemme betalinger", e);
         }
     }
 }
