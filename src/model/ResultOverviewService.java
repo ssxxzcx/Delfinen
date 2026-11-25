@@ -1,4 +1,3 @@
-
 package model;
 
 import java.time.LocalDate;
@@ -8,6 +7,7 @@ import java.util.List;
 
 public class ResultOverviewService {
 
+    // Hent alle resultater for et medlem
     public List<MemberTrainingResult> getResultsForMember(
             int memberId,
             List<MemberTrainingResult> results) {
@@ -23,6 +23,7 @@ public class ResultOverviewService {
         return memberResults;
     }
 
+    // Hent konkurrenceresultater for et medlem
     public List<MemberTrainingResult> getCompetitionResultsForMember(
             int memberId,
             List<MemberTrainingResult> results) {
@@ -39,6 +40,7 @@ public class ResultOverviewService {
         return competitionResults;
     }
 
+    // Find bedste træningstid i en bestemt disciplin
     public MemberTrainingResult getBestTrainingResult(
             int memberId,
             SwimmingDiscipline discipline,
@@ -47,6 +49,7 @@ public class ResultOverviewService {
         MemberTrainingResult bestResult = null;
 
         for (MemberTrainingResult entry : results) {
+
             if (entry.getMember().getMemberId() == memberId
                     && entry.getResult().getDiscipline() == discipline
                     && entry.getResultType() == ResultType.TRAINING) {
@@ -62,6 +65,7 @@ public class ResultOverviewService {
         return bestResult;
     }
 
+    // Find bedste træningstid i hver disciplin
     public List<MemberTrainingResult> getBestTrainingResultsForMember(
             int memberId,
             List<MemberTrainingResult> results) {
@@ -82,6 +86,7 @@ public class ResultOverviewService {
         return bestResults;
     }
 
+    // Top 5 for juniorer eller seniorer
     public List<MemberTrainingResult> getTopFive(
             SwimmingDiscipline discipline,
             List<MemberTrainingResult> results,
@@ -96,32 +101,51 @@ public class ResultOverviewService {
 
             boolean isJunior = member.getAge(LocalDate.now()) < 18;
 
-            if (result.getDiscipline() == discipline && isJunior == juniors) {
-                boolean memberAlreadyAdded = false;
+            // Kun konkurrencesvømmere med gyldig disciplin
+            // og registrerede træningstider
+            if (!member.isCompetitive()
+                    || !member.isActiveInDiscipline(discipline)
+                    || entry.getResultType() != ResultType.TRAINING
+                    || result.getDiscipline() != discipline
+                    || isJunior != juniors) {
+                continue;
+            }
 
-                for (int i = 0; i < bestResults.size(); i++) {
-                    if (bestResults.get(i).getMember().getMemberId()
-                            == member.getMemberId()) {
+            boolean memberAlreadyAdded = false;
 
-                        memberAlreadyAdded = true;
+            // Hver svømmer må kun optræde én gang
+            for (int i = 0; i < bestResults.size(); i++) {
 
-                        if (result.getTime()
-                                < bestResults.get(i).getResult().getTime()) {
-                            bestResults.set(i, entry);
-                        }
+                MemberTrainingResult existing = bestResults.get(i);
+
+                if (existing.getMember().getMemberId()
+                        == member.getMemberId()) {
+
+                    memberAlreadyAdded = true;
+
+                    // Behold svømmerens hurtigste træningstid
+                    if (result.getTime()
+                            < existing.getResult().getTime()) {
+                        bestResults.set(i, entry);
                     }
-                }
 
-                if (!memberAlreadyAdded) {
-                    bestResults.add(entry);
+                    break;
                 }
+            }
+
+            if (!memberAlreadyAdded) {
+                bestResults.add(entry);
             }
         }
 
+        // Sorter efter hurtigste tid
         bestResults.sort(
-                Comparator.comparingInt(entry -> entry.getResult().getTime())
+                Comparator.comparingInt(
+                        entry -> entry.getResult().getTime()
+                )
         );
 
+        // Returner højst fem svømmere
         if (bestResults.size() > 5) {
             return new ArrayList<>(bestResults.subList(0, 5));
         }
@@ -129,3 +153,4 @@ public class ResultOverviewService {
         return bestResults;
     }
 }
+
